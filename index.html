@@ -4,7 +4,494 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Over Brechó</title>
+<style><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Over Brechó</title>
+<link rel="icon" type="image/png" href="logos.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  :root{
+    --bg:#f4eee7;
+    --panel:#fffaf4;
+    --panel2:#f8efe7;
+    --text:#4b2730;
+    --muted:#8a6f68;
+    --line:#ddc9bd;
+    --accent:#8d3f50;
+    --accentText:#fffaf5;
+    --rose:#c88f91;
+    --cream:#fffaf4;
+    --ink:#3f252b;
+    --shadow:0 18px 45px rgba(86,48,42,.11);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 8% 5%, rgba(200,143,145,.12), transparent 25%),
+      radial-gradient(circle at 92% 18%, rgba(141,63,80,.08), transparent 22%),
+      linear-gradient(180deg,#f7f1eb 0%,#f3ebe4 48%,#eee2d9 100%);
+    color:var(--text);
+    font-family:"DM Sans",system-ui,sans-serif;
+    min-height:100vh;
+  }
+
+  body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:.18;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+    z-index:10;
+  }
+
+  button,input,select{font:inherit}
+  .wrap{max-width:1280px;margin:auto;padding:26px 24px 60px;position:relative;z-index:1}
+
+  header{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;
+    margin-bottom:28px;flex-wrap:wrap;
+    padding-bottom:20px;border-bottom:1px solid var(--line);
+  }
+
+  .brand{display:flex;align-items:center;gap:16px}
+  .brand img{
+    width:96px;height:72px;object-fit:contain;
+    filter:sepia(.12) saturate(.9) drop-shadow(0 7px 12px rgba(86,48,42,.14));
+  }
+  .brand h1{
+    font-family:"Cormorant Garamond",Georgia,serif;
+    font-size:38px;line-height:.9;letter-spacing:.06em;
+    margin:0;color:var(--text);font-weight:600;
+  }
+  .brand p{
+    margin:7px 0 0;color:var(--muted);font-size:10px;
+    letter-spacing:.22em;text-transform:uppercase;
+  }
+
+  .header-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .btn{
+    border:1px solid #cdaeb0;background:var(--accent);color:var(--accentText);
+    border-radius:3px;padding:11px 16px;font-weight:600;cursor:pointer;
+    box-shadow:0 7px 18px rgba(110,49,61,.13);transition:.2s ease;
+  }
+  .btn:hover{transform:translateY(-1px);background:#763344}
+  .btn.secondary{background:transparent;color:var(--text);border-color:var(--line);box-shadow:none}
+  .btn.secondary:hover{background:#fff7f0}
+  .btn.danger{background:transparent;color:#9a4e57;border-color:#dfc1bd;box-shadow:none}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .status{
+    font-size:10px;color:var(--muted);padding:9px 11px;
+    border:1px solid var(--line);border-radius:3px;background:rgba(255,250,244,.65);
+    text-transform:uppercase;letter-spacing:.08em;
+  }
+  .status.admin{color:var(--accent);border-color:#cdaeb0}
+
+  .stat-label{
+    color:var(--muted);font-size:10px;text-transform:uppercase;
+    letter-spacing:.14em
+  }
+  .stat-value{
+    font-family:"Cormorant Garamond",Georgia,serif;
+    color:var(--text);font-size:31px;font-weight:600;margin-top:4px
+  }
+  .admin-only.hidden{display:none!important}
+
+
+  .top-controls{
+    display:flex;
+    align-items:center;
+    gap:100px;
+    margin:0 auto 100px;
+    max-width:1080px;
+    width:100%;
+  }
+
+  .stats{
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    gap: 100px;px;
+    flex:0 0 auto;
+  }
+
+  .stat-card{
+    min-width:160px;
+    padding:14px 16px;
+    background:rgba(255,250,244,.58);
+    border:1px solid var(--line);
+    box-shadow:0 8px 22px rgba(86,48,42,.06);
+  }
+
+  /* Pesquisa compacta com ícone */
+  .search-wrap{
+    position:relative;
+    flex:0 0 46px;
+    width:46px;
+    margin-left:auto;
+    height:46px;
+    transition:width .25s ease,flex-basis .25s ease;
+  }
+
+  .search-wrap:hover,
+  .search-wrap:focus-within{
+    width:330px;
+    flex-basis:330px;
+  }
+
+  .search-icon{
+    position:absolute;
+    left:16px;top:50%;
+    transform:translateY(-50%);
+    color:var(--accent);
+    font-size:18px;
+    line-height:1;
+    pointer-events:none;
+    z-index:2;
+  }
+
+  .search{
+    width:100%;height:46px;
+    min-width:52px;
+    background:rgba(255,250,244,.9);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:2px;
+    padding:12px 14px 12px 43px;
+    outline:none;
+    transition:.22s ease;
+  }
+
+  .search::placeholder{color:transparent}
+  .search-wrap:focus-within .search{box-shadow:0 8px 22px rgba(86,48,42,.08)}
+
+  /* Filtros escondidos na lateral esquerda */
+  .filter-drawer{
+    position:fixed;
+    left:0;
+    top:112px;
+    transform:none;
+    z-index:30;
+    display:flex;
+    align-items:flex-start;
+    width:42px;
+    padding:0;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+    overflow:visible;
+    transition:width .25s ease;
+  }
+
+  .filter-drawer:hover,
+  .filter-drawer:focus-within{
+    width:285px;
+  }
+
+  .filter-trigger{
+    width:32px;
+    min-width:32px;
+    height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent);
+    font-size:19px;
+    line-height:1;
+    margin:0;
+    cursor:pointer;
+  }
+
+  .filter-fields{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    width:245px;
+    margin-left:10px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease;
+  }
+
+  .filter-drawer:hover .filter-fields,
+  .filter-drawer:focus-within .filter-fields{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .filter-drawer select{
+    width:100%;
+    min-width:0;
+  }
+  select{
+    background:rgba(255,250,244,.9);color:var(--text);
+    border:1px solid var(--line);border-radius:2px;padding:12px
+  }
+  input:focus,select:focus{outline:2px solid rgba(141,63,80,.14);border-color:#b47b84}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:17px}
+  .piece{overflow:hidden;padding:0;position:relative;transition:.22s ease}
+  .piece:hover{transform:translateY(-3px);box-shadow:0 22px 48px rgba(86,48,42,.16)}
+  .piece.sold{opacity:.62;filter:grayscale(.72)}
+
+  .photo{
+    height:285px;background:#eaded5;display:flex;align-items:center;
+    justify-content:center;overflow:hidden;cursor:zoom-in;position:relative
+  }
+  .photo:after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)
+  }
+  .photo img{width:100%;height:100%;object-fit:cover;transition:transform .45s ease}
+  .piece:hover .photo img{transform:scale(1.025)}
+  .placeholder{color:#b9898a;font-size:48px}
+  .photo-count{
+    position:absolute;right:10px;bottom:10px;background:rgba(75,39,48,.72);
+    border:1px solid rgba(255,255,255,.22);border-radius:2px;
+    padding:5px 8px;font-size:10px;font-weight:700;color:#fffaf4
+  }
+
+  .piece-body{padding:15px 16px 17px}
+  .piece-title{
+    font-family:"Cormorant Garamond",Georgia,serif;
+    color:var(--text);font-weight:700;font-size:22px;line-height:1;margin-bottom:8px
+  }
+  .price{
+    font-family:"Cormorant Garamond",Georgia,serif;
+    color:var(--accent);font-size:22px;font-weight:700
+  }
+  .meta{color:var(--muted);font-size:11px;margin-top:5px;line-height:1.5}
+  .detail-tags{display:flex;gap:5px;flex-wrap:wrap;margin:9px 0}
+  .detail-tag{
+    font-size:9px;background:#f2e4dc;border:1px solid #dec8bd;color:#76575a;
+    border-radius:999px;padding:5px 8px;text-transform:uppercase;letter-spacing:.05em
+  }
+  .badge{
+    position:absolute;z-index:2;top:10px;left:10px;padding:6px 9px;border-radius:2px;
+    background:#fff7f0;color:var(--accent);border:1px solid #dec0b8;
+    font-size:9px;font-weight:800;letter-spacing:.1em
+  }
+  .sold .badge{background:#e9dfd8;color:#765f5d;border-color:#d5c6bd}
+
+  .actions{display:flex;gap:7px;margin-top:14px}
+  .actions button{
+    flex:1;padding:9px 8px;border-radius:2px;border:1px solid var(--line);
+    background:#fffaf4;color:var(--text);cursor:pointer;font-size:11px;transition:.18s ease
+  }
+  .actions button:hover{border-color:#b8908c;background:#f9eee7}
+  .actions button.primary{background:var(--accent);color:#fffaf4;border-color:var(--accent)}
+
+  dialog{
+    border:1px solid var(--line);border-radius:0;background:#fffaf4;color:var(--text);
+    width:min(590px,calc(100% - 28px));padding:0;
+    box-shadow:0 30px 90px rgba(74,42,42,.28)
+  }
+  dialog::backdrop{background:rgba(54,30,34,.48)}
+  .modal{padding:24px}
+  .modal h2{
+    font-family:"Cormorant Garamond",Georgia,serif;font-size:32px;font-weight:600;
+    margin:0 0 18px;color:var(--text)
+  }
+  .form{display:grid;gap:13px}
+  label{font-size:11px;color:#805d60;text-transform:uppercase;letter-spacing:.07em}
+  input[type=text],input[type=number],input[type=file],input[type=date],input[type=email],input[type=password]{
+    width:100%;margin-top:6px;background:#fffdf9;color:var(--text);
+    border:1px solid var(--line);border-radius:2px;padding:11px
+  }
+  .form select{width:100%;margin-top:6px}
+  .preview{
+    min-height:180px;border:1px dashed #d4bbb1;border-radius:2px;
+    display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+    overflow:auto;background:#fdf7f1;color:#9a8078;padding:8px
+  }
+  .preview img{width:96px;height:120px;object-fit:cover;border-radius:2px;border:1px solid #d8c2b8}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}
+  .empty{
+    text-align:center;color:#8f7771;padding:55px 10px;
+    border:1px dashed #d4bbb1;border-radius:0;grid-column:1/-1
+  }
+  .notice{
+    margin:0 0 16px;padding:11px 14px;border:1px solid var(--line);
+    border-radius:0;background:rgba(255,250,244,.65);color:#806266;font-size:12px
+  }
+
+  .lightbox{
+    position:fixed;inset:0;z-index:9999;background:rgba(42,24,28,.94);
+    display:none;align-items:center;justify-content:center;padding:30px
+  }
+  .lightbox.open{display:flex}
+  .lightbox-inner{position:relative;max-width:min(1000px,92vw);max-height:92vh;display:flex;align-items:center;justify-content:center}
+  .lightbox-img{display:block;max-width:92vw;max-height:88vh;object-fit:contain;border-radius:2px;box-shadow:0 20px 80px #160b0d}
+  .lightbox-close{
+    position:fixed;top:18px;right:22px;width:42px;height:42px;border-radius:50%;
+    border:1px solid #76575b;background:#fffaf4;color:var(--text);font-size:24px;cursor:pointer
+  }
+  .lightbox-nav{
+    position:fixed;top:50%;transform:translateY(-50%);width:46px;height:58px;
+    border:1px solid #76575b;border-radius:2px;background:rgba(58,31,37,.82);
+    color:#fffaf4;font-size:26px;cursor:pointer
+  }
+  .lightbox-prev{left:20px}.lightbox-next{right:20px}
+  .lightbox-counter{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    background:rgba(58,31,37,.85);border:1px solid #76575b;border-radius:999px;
+    padding:7px 11px;font-size:11px;color:#fffaf4
+  }
+  .lightbox-nav.hidden,.lightbox-counter.hidden{display:none}
+
+  @media(max-width:1000px){
+    .top-controls{flex-wrap:wrap;justify-content:center}
+    .stats{display:flex;flex-wrap:wrap;justify-content:center}
+    .toolbar{display:flex;margin-left:auto}
+  }
+
+  @media(max-width:800px){
+    header{align-items:flex-start}
+    .brand img{width:82px}
+    .intro{grid-template-columns:1fr}
+    .hero-copy h2{font-size:38px}
+  }
+  @media(max-width:520px){
+    .top-controls{flex-direction:column;gap:12px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .stat-card{min-width:0}
+    .toolbar{display:flex}
+    .search-wrap{flex-basis:46px;width:46px;margin-left:0}
+
+    .wrap{padding:18px 12px 45px}
+    .stats{grid-template-columns:1fr 1fr}
+    .row{grid-template-columns:1fr}
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .photo{height:205px}
+    .piece-body{padding:11px}
+    .piece-title{font-size:18px}
+    .price{font-size:19px}
+    .actions{flex-direction:column}
+    .header-actions{width:100%}
+    .header-actions .btn{flex:1}
+    .lightbox{padding:12px}
+    .lightbox-prev{left:6px}.lightbox-next{right:6px}
+    .hero-copy{padding:24px 22px}
+    .hero-copy h2{font-size:34px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <img src="logos.png" alt="Over Brechó">
+      <div><h1>OVER BRECHÓ</h1><p>Curadoria Vintage</p></div>
+    </div>
+    <div class="header-actions">
+      <span class="status" id="connectionStatus">Conectando...</span>
+      <button class="btn secondary" id="loginBtn">Entrar</button>
+      <button class="btn secondary admin-only hidden" id="logoutBtn">Sair</button>
+      <button class="btn admin-only hidden" id="newPieceBtn">+ Nova Peça</button>
+    </div>
+  </header>
+<section class="top-controls">
+  <section class="stats">
+    <div class="card stat-card"><div class="stat-label">Peças</div><div class="stat-value" id="total">0</div></div>
+    <div class="card stat-card"><div class="stat-label">Disponíveis</div><div class="stat-value" id="available">0</div></div>
+    <div class="card stat-card admin-only hidden"><div class="stat-label">Faturamento</div><div class="stat-value" id="revenue">R$ 0,00</div></div>
+    <div class="card stat-card admin-only hidden"><div class="stat-label">Lucro</div><div class="stat-value" id="profit">R$ 0,00</div></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="search-wrap" title="Pesquisar">
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input class="search" id="search" aria-label="Pesquisar peças">
+    </div>
+  </div>
+
+  <div class="filter-drawer" aria-label="Filtros">
+    <div class="filter-trigger" aria-hidden="true">☰</div>
+    <div class="filter-fields">
+      <select id="filter" aria-label="Filtrar acervo"><option value="all">Todos</option><option value="available">Disponíveis</option><option value="sold">Vendidas</option></select>
+      <select id="categoryFilter" aria-label="Filtrar por categoria"><option value="all">Categorias</option></select>
+    </div>
+  </div>
+
+  <main id="grid" class="grid"></main>
+</div>
+
+<dialog id="pieceDialog"><div class="modal"><h2 id="modalTitle">Nova Peça</h2><form class="form" id="pieceForm">
+  <input type="hidden" id="editId"><input type="hidden" id="oldImageUrl">
+  <label>nome da peça<input id="name" type="text" placeholder="ex.: jaqueta jeans vintage" required></label>
+  <div class="row">
+    <label>tamanho<input id="size" type="text" placeholder="Ex.: M, G, 38, 40"></label>
+    <label>categoria<select id="category"><option value="">Selecione...</option><option>Camiseta</option><option>Blusa</option><option>Calça</option><option>Short</option><option>Saia</option><option>Vestido</option><option>Casaco</option><option>Jaqueta</option><option>Moletom</option><option>Acessório</option><option>Outro</option></select></label>
+  </div>
+  <div class="row"><label>valor de venda (R$)<input id="salePrice" type="number" min="0" step="0.01" placeholder="0,00" required></label><label>custo da peça (R$)<input id="cost" type="number" min="0" step="0.01" placeholder="0,00"></label></div>
+  <label>data da venda<input id="soldDate" type="date"></label>
+  <label>fotos da peça<input id="image" type="file" accept="image/*" multiple></label>
+  <div class="preview" id="preview">prévia das imagens</div>
+  <div class="modal-actions"><button type="button" class="btn secondary" id="cancelPieceBtn">Cancelar</button><button class="btn" id="savePieceBtn" type="submit">Salvar Peça</button></div>
+</form></div></dialog>
+
+<dialog id="loginDialog"><div class="modal"><h2>Login do Administrador</h2><form class="form" id="loginForm">
+  <label>E-mail<input id="loginEmail" type="email" autocomplete="username" required></label><label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+  <div class="modal-actions"><button type="button" class="btn secondary" id="cancelLoginBtn">Cancelar</button><button class="btn" id="doLoginBtn" type="submit">Entrar</button></div>
+</form></div></dialog>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Fechar">×</button>
+  <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Imagem anterior">‹</button>
+  <div class="lightbox-inner"><img class="lightbox-img" id="lightboxImg" alt="Imagem ampliada"></div>
+  <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Próxima imagem">›</button>
+  <div class="lightbox-counter" id="lightboxCounter"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://awhkecgohjuizdzmodko.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CZoKuy8rabli3DYYVeJprw_m-E6RLDD';
+const ADMIN_UID = '1e43cb57-ee84-410e-87b3-c508efdcf0eb';
+const TABLE = 'pieces'; const BUCKET = 'pieces';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let pieces=[], currentUser=null, selectedFiles=[], realtimeChannel=null, lightboxImages=[], lightboxIndex=0;
+const el=Object.fromEntries([...document.querySelectorAll('[id]')].map(x=>[x.id,x]));
+const money=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0); const isAdmin=()=>currentUser?.id===ADMIN_UID;
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function formatDate(value){if(!value)return '';const [y,m,d]=String(value).slice(0,10).split('-');return y&&m&&d?`${d}/${m}/${y}`:'';}
+function setStatus(text,admin=false){el.connectionStatus.textContent=text;el.connectionStatus.classList.toggle('admin',admin)} function showError(msg,err){console.error(msg,err);alert(msg+(err?.message?`\n\n${err.message}`:''))}
+function parseImageUrls(value){if(!value)return[];try{const parsed=JSON.parse(value);if(Array.isArray(parsed))return parsed.filter(Boolean)}catch{}return[value]}
+function serializeImageUrls(urls){return JSON.stringify((urls||[]).filter(Boolean))}
+function updateAuthUI(){document.querySelectorAll('.admin-only').forEach(x=>x.classList.toggle('hidden',!isAdmin()));el.loginBtn.style.display=isAdmin()?'none':'';el.viewerNotice.style.display=isAdmin()?'none':'';setStatus(isAdmin()?'Administrador Conectado':'Online',isAdmin());render()}
+async function loadPieces(silent=false){if(!silent)setStatus('Atualizando...');const{data,error}=await sb.from(TABLE).select('*').order('created_at',{ascending:false});if(error){setStatus('Erro de Conexão');showError('Não foi possível carregar as peças.',error);return}pieces=(data||[]).map(p=>({id:p.id,name:p.name,size:p.size||'',category:p.category||'',salePrice:Number(p.sale_price)||0,cost:Number(p.cost)||0,images:parseImageUrls(p.image_url),sold:!!p.sold,soldAt:p.sold_at||null,createdAt:p.created_at}));updateCategoryFilter();if(!silent)setStatus(isAdmin()?'Administrador Conectado':'Online',isAdmin());render()}
+function updateCategoryFilter(){const current=el.categoryFilter.value;const cats=[...new Set(pieces.map(p=>p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));el.categoryFilter.innerHTML='<option value="all">Categorias</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');if(cats.includes(current))el.categoryFilter.value=current}
+function render(){const q=el.search.value.toLowerCase().trim(),f=el.filter.value,cf=el.categoryFilter.value;const list=pieces.filter(p=>{const hay=`${p.name} ${p.size} ${p.category}`.toLowerCase();return(!q||hay.includes(q))&&(f==='all'||(f==='sold'&&p.sold)||(f==='available'&&!p.sold))&&(cf==='all'||p.category===cf)});el.grid.innerHTML=list.length?list.map(p=>{const first=p.images[0]||'';const tags=[p.size?`Tamanho: ${esc(p.size)}`:'',p.category?esc(p.category):''].filter(Boolean).map(t=>`<span class="detail-tag">${t}</span>`).join('');return`<article class="card piece ${p.sold?'sold':''}"><span class="badge">${p.sold?'VENDIDA':'DISPONÍVEL'}</span><div class="photo" ${p.images.length?`onclick="openLightbox('${p.id}',0)"`:''}>${first?`<img src="${esc(first)}" alt="${esc(p.name)}">`:'<div class="placeholder">♡</div>'}${p.images.length>1?`<span class="photo-count">📷 ${p.images.length}</span>`:''}</div><div class="piece-body"><div class="piece-title">${esc(p.name)}</div>${tags?`<div class="detail-tags">${tags}</div>`:''}<div class="price">${money(p.salePrice)}</div><div class="meta">${isAdmin()?`custo: ${money(p.cost)} · `:''}${p.sold&&p.soldAt?'vendida em '+formatDate(p.soldAt):'em estoque'}</div>${isAdmin()?`<div class="actions"><button class="primary" onclick="toggleSold('${p.id}')">${p.sold?'marcar disponível':'marcar vendida'}</button><button onclick="openPiece('${p.id}')">Editar</button><button class="danger" onclick="removePiece('${p.id}')">Excluir</button></div>`:''}</div></article>`}).join(''):'<div class="empty">Nenhuma Peça Encontrada.</div>';el.total.textContent=pieces.length;el.available.textContent=pieces.filter(p=>!p.sold).length;el.revenue.textContent=money(pieces.filter(p=>p.sold).reduce((s,p)=>s+p.salePrice,0));el.profit.textContent=money(pieces.filter(p=>p.sold).reduce((s,p)=>s+(p.salePrice-p.cost),0))}
+function renderPreview(urls){el.preview.innerHTML=urls.length?urls.map(u=>`<img src="${esc(u)}" alt="Prévia">`).join(''):'prévia das imagens'}
+window.openPiece=function(id=null){if(!isAdmin())return;el.pieceForm.reset();selectedFiles=[];el.editId.value='';el.oldImageUrl.value='';renderPreview([]);el.modalTitle.textContent=id?'Editar peça':'Nova peça';if(id){const p=pieces.find(x=>x.id===id);if(!p)return;el.editId.value=p.id;el.name.value=p.name;el.size.value=p.size||'';el.category.value=p.category||'';el.salePrice.value=p.salePrice;el.cost.value=p.cost||'';el.soldDate.value=p.soldAt?String(p.soldAt).slice(0,10):'';el.oldImageUrl.value=serializeImageUrls(p.images);renderPreview(p.images)}el.pieceDialog.showModal()}
+el.image.addEventListener('change',e=>{selectedFiles=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/'));if(!selectedFiles.length){el.image.value='';return}const urls=selectedFiles.map(f=>URL.createObjectURL(f));renderPreview(urls)});
+async function uploadImage(file){const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';const path=`${ADMIN_UID}/${crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(16).slice(2)}.${ext}`;const{error}=await sb.storage.from(BUCKET).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(error)throw error;return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}
+async function deleteImageByUrl(url){if(!url)return;const marker=`/storage/v1/object/public/${BUCKET}/`;const idx=url.indexOf(marker);if(idx<0)return;const path=decodeURIComponent(url.slice(idx+marker.length));await sb.storage.from(BUCKET).remove([path])}
+async function deleteImages(urls){for(const url of urls||[])await deleteImageByUrl(url)}
+el.pieceForm.addEventListener('submit',async e=>{e.preventDefault();if(!isAdmin())return;const editing=!!el.editId.value;const old=editing?pieces.find(p=>p.id===el.editId.value):null;el.savePieceBtn.disabled=true;el.savePieceBtn.textContent='Salvando...';try{let imageUrls=parseImageUrls(el.oldImageUrl.value);if(selectedFiles.length){const newUrls=[];for(const file of selectedFiles)newUrls.push(await uploadImage(file));if(imageUrls.length)await deleteImages(imageUrls);imageUrls=newUrls}const soldDate=el.soldDate.value||null;const payload={name:el.name.value.trim(),size:el.size.value.trim()||null,category:el.category.value||null,sale_price:Number(el.salePrice.value||0),cost:Number(el.cost.value||0),image_url:serializeImageUrls(imageUrls),sold:!!soldDate,sold_at:soldDate};let result;if(editing)result=await sb.from(TABLE).update(payload).eq('id',el.editId.value);else result=await sb.from(TABLE).insert(payload);if(result.error)throw result.error;el.pieceDialog.close();await loadPieces(true)}catch(err){showError('não foi possível salvar a peça.',err)}finally{el.savePieceBtn.disabled=false;el.savePieceBtn.textContent='salvar peça'}})
+window.toggleSold=async function(id){if(!isAdmin())return;const p=pieces.find(x=>x.id===id);if(!p)return;const newSold=!p.sold,soldAt=newSold?new Date().toLocaleDateString('en-CA'):null;const{error}=await sb.from(TABLE).update({sold:newSold,sold_at:soldAt}).eq('id',id);if(error)return showError('Não foi possível alterar a disponibilidade.',error);await loadPieces(true)}
+window.removePiece=async function(id){if(!isAdmin()||!confirm('Excluir esta peça? Ela será removida do controle.'))return;const p=pieces.find(x=>x.id===id);const{error}=await sb.from(TABLE).delete().eq('id',id);if(error)return showError('Não foi possível excluir a peça.',error);if(p?.images?.length)await deleteImages(p.images);await loadPieces(true)}
+window.openLightbox=function(id,index=0){const p=pieces.find(x=>x.id===id);if(!p?.images?.length)return;lightboxImages=p.images;lightboxIndex=Math.max(0,Math.min(index,lightboxImages.length-1));updateLightbox();el.lightbox.classList.add('open');el.lightbox.setAttribute('aria-hidden','false')}
+function updateLightbox(){el.lightboxImg.src=lightboxImages[lightboxIndex]||'';const multi=lightboxImages.length>1;el.lightboxPrev.classList.toggle('hidden',!multi);el.lightboxNext.classList.toggle('hidden',!multi);el.lightboxCounter.classList.toggle('hidden',!multi);el.lightboxCounter.textContent=multi?`${lightboxIndex+1} / ${lightboxImages.length}`:''}
+function closeLightbox(){el.lightbox.classList.remove('open');el.lightbox.setAttribute('aria-hidden','true');el.lightboxImg.src=''}
+el.lightboxClose.addEventListener('click',closeLightbox);el.lightbox.addEventListener('click',e=>{if(e.target===el.lightbox)closeLightbox()});el.lightboxPrev.addEventListener('click',e=>{e.stopPropagation();lightboxIndex=(lightboxIndex-1+lightboxImages.length)%lightboxImages.length;updateLightbox()});el.lightboxNext.addEventListener('click',e=>{e.stopPropagation();lightboxIndex=(lightboxIndex+1)%lightboxImages.length;updateLightbox()});document.addEventListener('keydown',e=>{if(!el.lightbox.classList.contains('open'))return;if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft'&&lightboxImages.length>1){lightboxIndex=(lightboxIndex-1+lightboxImages.length)%lightboxImages.length;updateLightbox()}if(e.key==='ArrowRight'&&lightboxImages.length>1){lightboxIndex=(lightboxIndex+1)%lightboxImages.length;updateLightbox()}})
+el.loginForm.addEventListener('submit',async e=>{e.preventDefault();el.doLoginBtn.disabled=true;el.doLoginBtn.textContent='Entrando...';const{data,error}=await sb.auth.signInWithPassword({email:el.loginEmail.value.trim(),password:el.loginPassword.value});el.doLoginBtn.disabled=false;el.doLoginBtn.textContent='entrar';if(error)return showError('Login inválido.',error);currentUser=data.user;if(!isAdmin()){await sb.auth.signOut();currentUser=null;alert('Esta conta não tem permissão de administrador.')}else{el.loginDialog.close();el.loginForm.reset()}updateAuthUI()});
+el.logoutBtn.addEventListener('click',async()=>{await sb.auth.signOut();currentUser=null;updateAuthUI()});el.loginBtn.addEventListener('click',()=>el.loginDialog.showModal());el.newPieceBtn.addEventListener('click',()=>openPiece());el.cancelPieceBtn.addEventListener('click',()=>el.pieceDialog.close());el.cancelLoginBtn.addEventListener('click',()=>el.loginDialog.close());el.search.addEventListener('input',render);el.filter.addEventListener('change',render);el.categoryFilter.addEventListener('change',render);
+function startRealtime(){realtimeChannel=sb.channel('over-brecho-live').on('postgres_changes',{event:'*',schema:'public',table:TABLE},()=>loadPieces(true)).subscribe();setInterval(()=>loadPieces(true),10000)}
+(async function init(){const{data:{session}}=await sb.auth.getSession();currentUser=session?.user||null;if(currentUser&&!isAdmin()){await sb.auth.signOut();currentUser=null}updateAuthUI();await loadPieces();startRealtime();sb.auth.onAuthStateChange((_event,session)=>{currentUser=session?.user||null;updateAuthUI()})})();
+</script>
+</body>
+</html>
   :root{
     --bg:#0d0d0d; --panel:#171717; --panel2:#202020; --text:#f5f5f5;
     --muted:#aaa; --line:#303030; --accent:#fff; --danger:#d96b6b;
